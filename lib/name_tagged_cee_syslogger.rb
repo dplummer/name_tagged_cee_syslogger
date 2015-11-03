@@ -1,5 +1,6 @@
 require "name_tagged_cee_syslogger/version"
 
 module NameTaggedCeeSyslogger
-  # Your code goes here...
+  autoload :Logger, "name_tagged_cee_syslogger/logger"
+  autoload :CeeFormatter, "name_tagged_cee_syslogger/cee_formatter"
 end

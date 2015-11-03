@@ -17,9 +17,26 @@ gem 'name_tagged_cee_syslogger'
 Add do your rails configuration:
 
 ```ruby
-config.logger = NameTaggedCeeSyslogger.new("YourAppName", Syslog::LOG_PID, Syslog::LOG_LOCAL7)
+config.logger = NameTaggedCeeSyslogger::Logger.new("YourAppName", Syslog::LOG_PID, Syslog::LOG_LOCAL7)
 ```
 
+```ruby
+logger = NameTaggedCeeSyslogger::Logger.new("my_app", Syslog::LOG_PID | Syslog::LOG_CONS, Syslog::LOG_LOCAL0)
+logger.level = ::Logger::INFO # use Logger levels
+logger.warn "warning message"
+logger.debug "debug message"
+
+logger.info "my_subapp" { "Some lazily computed message" }
+# => Nov  2 13:57:11 hostname my_subapp[21861]: @cee: {"msg":"Some lazily computed message","severity":"INFO"}
+
+logger.tagged(tagname: "abc123") do
+  logger.info "this is a message"
+end
+# => Nov  2 13:57:11 hostname my_app[21860]: @cee: {"tagname":"abc123","msg":"this is a message","severity":"INFO"}
+
+logger.warn(a: "hash", of: "data")
+# => Nov  2 13:57:11 hostname my_app[21860]: @cee: {"a":"hash","of":"data","severity":"WARN"}
+```
 
 
 ## Development
