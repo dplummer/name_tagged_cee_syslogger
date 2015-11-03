@@ -40,4 +40,5 @@ describe NameTaggedCeeSyslogger::Logger do
       subject.warn(foo: "bar")
     end
   end
+
 end
