@@ -4,6 +4,9 @@ Like using Syslogger, TaggedLogging, and Lograge with the CeeFormatter. But For
 general purpose Rails use. Plus the tags get named so they are filterable in
 Kibana.
 
+Uses [syslogger](https://github.com/crohr/syslogger) gem, check it out for more
+usage information.
+
 ## Installation
 
 Add this line to your application's Gemfile:
