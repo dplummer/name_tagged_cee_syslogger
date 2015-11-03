@@ -22,4 +22,22 @@ describe NameTaggedCeeSyslogger::Logger do
 
     subject.warn(foo: "bar", baz: 123)
   end
+
+  it "tags log messages" do
+    expect(syslog).to receive(:log).
+      with(Syslog::LOG_WARNING, '@cee: {"severity":"WARN","foo":"bar","baz":123,"mytag":"yarp"}')
+
+    subject.tagged(mytag: "yarp") do
+      subject.warn(foo: "bar", baz: 123)
+    end
+  end
+
+  it "ignores any tag that isn't a hash" do
+    expect(syslog).to receive(:log).
+      with(Syslog::LOG_WARNING, '@cee: {"severity":"WARN","foo":"bar"}')
+
+    subject.tagged("yarp") do
+      subject.warn(foo: "bar")
+    end
+  end
 end
