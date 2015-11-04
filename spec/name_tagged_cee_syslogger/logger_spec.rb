@@ -41,12 +41,41 @@ describe NameTaggedCeeSyslogger::Logger do
     end
   end
 
+  it "lets the message override a tag, tag has a string key" do
+    expect(syslog).to receive(:log).
+      with(Syslog::LOG_WARNING, '@cee: {"severity":"WARN","foo":"it is new foo!"}')
+
+    subject.tagged("foo" => "tag") do
+      subject.warn(foo: "it is new foo!")
+    end
+  end
+
+  it "lets the message override a tag, message has a string key" do
+    expect(syslog).to receive(:log).
+      with(Syslog::LOG_WARNING, '@cee: {"severity":"WARN","foo":"it is new foo!"}')
+
+    subject.tagged(foo: "tag") do
+      subject.warn("foo" => "it is new foo!")
+    end
+  end
+
   it "ignores any tag that isn't a hash" do
     expect(syslog).to receive(:log).
       with(Syslog::LOG_WARNING, '@cee: {"severity":"WARN","foo":"bar"}')
 
     subject.tagged("yarp") do
       subject.warn(foo: "bar")
+    end
+  end
+
+  it "can nest tagging" do
+    expect(syslog).to receive(:log).
+      with(Syslog::LOG_WARNING, '@cee: {"severity":"WARN","tag":"2","foo":"bar"}')
+
+    subject.tagged("tag" => "1") do
+      subject.tagged("tag" => "2") do
+        subject.warn(foo: "bar")
+      end
     end
   end
 
