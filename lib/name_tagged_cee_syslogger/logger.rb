@@ -35,7 +35,7 @@ module NameTaggedCeeSyslogger
       message
     end
 
-    def tagged(tags)
+    def tagged(tags, *_)
       old_tags = current_tags.dup
 
       begin
