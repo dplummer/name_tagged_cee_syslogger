@@ -25,10 +25,19 @@ describe NameTaggedCeeSyslogger::Logger do
 
   it "tags log messages" do
     expect(syslog).to receive(:log).
-      with(Syslog::LOG_WARNING, '@cee: {"severity":"WARN","foo":"bar","baz":123,"mytag":"yarp"}')
+      with(Syslog::LOG_WARNING, '@cee: {"severity":"WARN","mytag":"yarp","foo":"bar","baz":123}')
 
     subject.tagged(mytag: "yarp") do
       subject.warn(foo: "bar", baz: 123)
+    end
+  end
+
+  it "lets the message override a tag" do
+    expect(syslog).to receive(:log).
+      with(Syslog::LOG_WARNING, '@cee: {"severity":"WARN","foo":"it is new foo!"}')
+
+    subject.tagged(foo: "tag") do
+      subject.warn(foo: "it is new foo!")
     end
   end
 

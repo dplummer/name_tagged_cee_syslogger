@@ -28,7 +28,7 @@ module NameTaggedCeeSyslogger
 
       current_tags.each_with_index do |tag, index|
         if tag.is_a?(Hash)
-          message.merge!(tag)
+          message = tag.merge(message)
         end
       end
 
