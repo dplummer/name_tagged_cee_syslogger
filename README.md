@@ -1,6 +1,6 @@
 # NameTaggedCeeSyslogger
 
-Like using Syslogger, TaggedLogging, and Lograge with the CeeFormatter. But For
+Like using Syslogger, TaggedLogging, and Lograge with the CeeFormatter. But for
 general purpose Rails use. Plus the tags get named so they are filterable in
 Kibana.
 
