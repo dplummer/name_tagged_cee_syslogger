@@ -7,8 +7,8 @@ Kibana.
 Uses [syslogger](https://github.com/crohr/syslogger) gem, check it out for more
 usage information.
 
-[![Build
-Status](https://travis-ci.org/dplummer/name_tagged_cee_syslogger.svg)](https://travis-ci.org/dplummer/name_tagged_cee_syslogger)
+[![Build Status](https://travis-ci.org/dplummer/name_tagged_cee_syslogger.svg)](https://travis-ci.org/dplummer/name_tagged_cee_syslogger)
+[![Gem Version](https://badge.fury.io/rb/name_tagged_cee_syslogger.svg)](https://badge.fury.io/rb/name_tagged_cee_syslogger)
 
 ## Installation
 
