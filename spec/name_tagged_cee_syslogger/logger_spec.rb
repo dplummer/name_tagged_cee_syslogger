@@ -9,6 +9,10 @@ describe NameTaggedCeeSyslogger::Logger do
       and_yield(syslog)
   end
 
+  after do
+    subject.stop
+  end
+
   it "logs simple messages" do
     expect(syslog).to receive(:log).
       with(Syslog::LOG_WARNING, '@cee: {"severity":"WARN","msg":"Some message"}')

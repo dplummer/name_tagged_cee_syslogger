@@ -1,10 +1,40 @@
 require "syslogger"
+require "thread"
+
 module NameTaggedCeeSyslogger
   class Logger < Syslogger
+    class ThreadEmptyError < ThreadError
+      def self.===(exception)
+        exception.is_a?(ThreadError) && exception.message == "queue empty"
+      end
+    end
+
     def initialize(*args)
       super
       @formatter = CeeFormatter.new
+      @message_queue = Queue.new
+      @queue_worker = Thread.new do
+        loop do
+          process_queue
+        end
+      end
     end
+
+    def stop
+      @queue_worker.kill if @queue_worker
+      while process_queue(true); end
+    rescue ThreadEmptyError
+    end
+
+    def process_queue(non_block=true)
+      log_message = @message_queue.pop(non_block)
+      add_now log_message.severity, log_message.message, log_message.progname
+      log_message
+    end
+
+    alias_method :add_now, :add
+
+    LogMessage = Struct.new(:severity, :message, :progname)
 
     # wraps message with merge_tags
     def add(severity, message = nil, progname = nil, &block)
@@ -13,7 +43,11 @@ module NameTaggedCeeSyslogger
       end
       message = merge_tags(message || block && block.call)
 
-      super(severity, message, progname)
+      enqueue_add(severity, message, progname)
+    end
+
+    def enqueue_add(severity, message, progname)
+      @message_queue.push LogMessage.new(severity, message, progname)
     end
 
     # prevent default tag behavior
