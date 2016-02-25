@@ -20,10 +20,18 @@ module NameTaggedCeeSyslogger
       end
     end
 
+    def queue_length
+      @message_queue.length
+    end
+
     def stop
-      @queue_worker.kill if @queue_worker
+      kill
       while process_queue(true); end
     rescue ThreadEmptyError
+    end
+
+    def kill
+      @queue_worker.kill if @queue_worker
     end
 
     def process_queue(non_block=true)
