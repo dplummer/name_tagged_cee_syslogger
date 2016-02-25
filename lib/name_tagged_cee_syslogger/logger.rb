@@ -1,10 +1,52 @@
 require "syslogger"
+require "circular_queue"
+
 module NameTaggedCeeSyslogger
   class Logger < Syslogger
-    def initialize(*args)
-      super
-      @formatter = CeeFormatter.new
+    class ThreadEmptyError < ThreadError
+      def self.===(exception)
+        exception.is_a?(ThreadError) &&
+          (exception.message == "queue empty" || exception.message == "Queue is empty")
+      end
     end
+
+    LogMessage = Struct.new(:severity, :message, :progname)
+
+    attr_reader :async
+
+    def initialize(ident = $0, options = Syslog::LOG_PID | Syslog::LOG_CONS, facility = nil, queue_options = {})
+      super(ident, options, facility)
+      @formatter = CeeFormatter.new
+      @async = queue_options.fetch(:async, true)
+
+      max_length = queue_options.fetch(:max_length, 1_000_000)
+
+      if max_length > 0
+        @message_queue = CircularQueue.new max_length
+      else
+        @message_queue = Queue.new
+      end
+
+      @queue_worker = Thread.new do
+        process_queue
+      end
+    end
+
+    def queue_length
+      @message_queue.length
+    end
+
+    def stop
+      kill
+      process_queue(true)
+    rescue ThreadEmptyError
+    end
+
+    def kill
+      @queue_worker.kill if @queue_worker
+    end
+
+    alias_method :add_now, :add
 
     # wraps message with merge_tags
     def add(severity, message = nil, progname = nil, &block)
@@ -13,7 +55,11 @@ module NameTaggedCeeSyslogger
       end
       message = merge_tags(message || block && block.call)
 
-      super(severity, message, progname)
+      if async
+        enqueue_add(severity, message, progname)
+      else
+        add_now(severity, message, progname)
+      end
     end
 
     # prevent default tag behavior
@@ -63,6 +109,17 @@ module NameTaggedCeeSyslogger
 
     def current_tags
       Thread.current[:name_tagged_logger_tags] ||= {}
+    end
+
+    def enqueue_add(severity, message, progname)
+      @message_queue.push LogMessage.new(severity, message, progname)
+    end
+
+    def process_queue(non_block=true)
+      loop do
+        log_message = @message_queue.pop(non_block)
+        add_now log_message.severity, log_message.message, log_message.progname
+      end
     end
   end
 end
