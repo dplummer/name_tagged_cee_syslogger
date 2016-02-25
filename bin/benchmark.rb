@@ -24,3 +24,10 @@ Benchmark.bm do |x|
   x.report('large circle') { N.times { |n| lcircle.warn "message #{n}" }; lcircle.stop }
   x.report('small circle') { N.times { |n| scircle.warn "message #{n}" }; scircle.stop }
 end
+
+# Macbook Pro Mid 2014 2.8GHz Core i7
+#               user       system     total    real
+# sync          3.140000   0.300000   3.440000 (  3.457583)
+# queue         4.000000   0.450000   4.450000 (  4.444919)
+# large circle  4.710000   0.330000   5.040000 (  5.049813)
+# small circle  2.960000   0.000000   2.960000 (  2.972995)
