@@ -1,18 +1,30 @@
 require "syslogger"
-require "thread"
+require "circular_queue"
 
 module NameTaggedCeeSyslogger
   class Logger < Syslogger
     class ThreadEmptyError < ThreadError
       def self.===(exception)
-        exception.is_a?(ThreadError) && exception.message == "queue empty"
+        exception.is_a?(ThreadError) &&
+          (exception.message == "queue empty" || exception.message == "Queue is empty")
       end
     end
 
-    def initialize(*args)
-      super
+    attr_reader :async
+
+    def initialize(ident = $0, options = Syslog::LOG_PID | Syslog::LOG_CONS, facility = nil, queue_options = {})
+      super(ident, options, facility)
       @formatter = CeeFormatter.new
-      @message_queue = Queue.new
+      @async = queue_options.fetch(:async, true)
+
+      max_length = queue_options.fetch(:max_length, 1_000_000)
+
+      if max_length > 0
+        @message_queue = CircularQueue.new max_length
+      else
+        @message_queue = Queue.new
+      end
+
       @queue_worker = Thread.new do
         loop do
           process_queue
@@ -51,7 +63,11 @@ module NameTaggedCeeSyslogger
       end
       message = merge_tags(message || block && block.call)
 
-      enqueue_add(severity, message, progname)
+      if async
+        enqueue_add(severity, message, progname)
+      else
+        add_now(severity, message, progname)
+      end
     end
 
     def enqueue_add(severity, message, progname)

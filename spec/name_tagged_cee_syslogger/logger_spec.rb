@@ -90,6 +90,11 @@ describe NameTaggedCeeSyslogger::Logger do
   end
 
   context "syslog device stuck" do
+    let(:queue_options) {{
+      max_length: 100
+    }}
+    subject { described_class.new($0, Syslog::LOG_PID | Syslog::LOG_CONS, nil, queue_options) }
+
     before do
       allow(Syslog).to receive(:open).
         with($0, Syslog::LOG_PID | Syslog::LOG_CONS, nil) { sleep }
@@ -105,5 +110,14 @@ describe NameTaggedCeeSyslogger::Logger do
       subject.warn "come on!"
       expect(subject.queue_length).to eq(3)
     end
+
+    it "doesn't store too many messages" do
+      101.times do |n|
+        subject.warn "message ##{n}"
+      end
+
+      expect(subject.queue_length).to eq(100)
+    end
+
   end
 end
