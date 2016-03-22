@@ -4,6 +4,7 @@ module NameTaggedCeeSyslogger
     def initialize(*args)
       super
       @formatter = CeeFormatter.new
+      after_initialize if respond_to? :after_initialize
     end
 
     # wraps message with merge_tags

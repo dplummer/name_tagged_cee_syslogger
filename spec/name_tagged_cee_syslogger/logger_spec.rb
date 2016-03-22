@@ -1,10 +1,18 @@
 require "spec_helper"
 
+class LoggerWithAfterInitialize < NameTaggedCeeSyslogger::Logger
+  attr_reader :foo
+
+  def after_initialize
+    @foo = "after initialize called"
+  end
+end
+
 describe NameTaggedCeeSyslogger::Logger do
   let(:syslog) { double("syslog", :mask= => true) }
 
   before do
-    expect(Syslog).to receive(:open).
+    allow(Syslog).to receive(:open).
       with($0, Syslog::LOG_PID | Syslog::LOG_CONS, nil).
       and_yield(syslog)
   end
@@ -79,4 +87,11 @@ describe NameTaggedCeeSyslogger::Logger do
     end
   end
 
+  describe "after_initialize" do
+    subject { LoggerWithAfterInitialize.new }
+
+    it "calls the after_initialize method if it exists" do
+      expect(subject.foo).to eq("after initialize called")
+    end
+  end
 end
